@@ -10,4 +10,5 @@
 
 [open-moss_科研练习](https://fudan-nlp.feishu.cn/wiki/WFifwXxfQiI3PKkn9FEcy0wKnjh)  
 
-[OpenMOSS](https://github.com/OpenMOSS/MOSS)
+[OpenMOSS](https://github.com/OpenMOSS/MOSS)  
+[nndl-book](https://nndl.github.io/)
