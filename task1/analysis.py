@@ -256,7 +256,7 @@ def run_full_analysis():
                 lr_results[lr] = acc
 
         if lr_results:
-            fig = plot_comparison_bar(lr_results, f"Learning Rate Comparison - {data_name}")
+            fig = plot_comparison_bar(lr_results, f"Learning Rate Comparison - {data_name} (Softmax)")
             fig.savefig(os.path.join(DOCS_DIR, 'figures', f'lr_comparison_{data_name}.png'), dpi=150)
             print(f"Saved: lr_comparison_{data_name}.png")
             plt.close(fig)
