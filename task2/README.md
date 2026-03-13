@@ -356,7 +356,3 @@ scheduler.step()
 2. Graves, A. (2013). Generating Sequences With Recurrent Neural Networks
 4. Vaswani et al. (2017). Attention is All You Need
 
-## 许可证
-
-MIT License
-
