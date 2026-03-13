@@ -126,7 +126,7 @@ def text_to_ngram(text: str, vocab: Dict[str, int], n: int) -> np.ndarray:
     return vec
 
 
-def process_bag_of_words(train_texts: List[str], test_texts: List[str]) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Dict]:
+def process_bag_of_words(train_texts: List[str], test_texts: List[str]) -> Tuple[np.ndarray, np.ndarray,  Dict]:
     """
     处理 Bag of Words 特征
     """
