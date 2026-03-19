@@ -1,0 +1,140 @@
+"""
+实验1：反转结果实验 - GPT
+
+训练 GPT 模型，使用反转的结果字符串（如 "123+456=975"）。
+================================================================================
+"""
+
+import os
+import sys
+
+# 添加父目录到路径
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
+from experiments.addition.train_gpt import *
+
+def main():
+    """主函数 - 修改为使用反转结果"""
+    # 解析参数
+    args = parse_args()
+
+    # 设置随机种子
+    set_seed(args.seed)
+
+    # 修改输出目录
+    args.checkpoint_dir = 'outputs/experimental_results/exp1_reversal/models'
+    args.log_dir = 'outputs/experimental_results/exp1_reversal/logs'
+
+    # 打印配置
+    print(f"\n实验1：反转结果训练 - GPT")
+    print("=" * 60)
+    print(f"数据集类型: {args.dataset_type}")
+    print(f"设备: {args.device}")
+    print(f"批大小: {args.batch_size}")
+    print(f"学习率: {args.lr}")
+    print(f"训练轮数: {args.epochs}")
+    print(f"结果反转: 启用")
+    print("=" * 60)
+
+    # 加载数据 - 使用反转结果
+    print(f"\n加载 {args.dataset_type} 数据集（反转结果）...")
+    print("=" * 60)
+
+    # 创建分词器
+    tokenizer = AdditionTokenizer()
+
+    # 生成反转结果的数据集
+    generator = AdditionDataGenerator()
+
+    if args.dataset_type == 'iid':
+        # 生成完整数据集然后划分，使用反转结果
+        full_data = generator.generate_dataset(
+            samples_per_type=50,
+            digit_combinations=[(d1, d2) for d1 in range(args.train_digits[0], args.train_digits[1]+1)
+                               for d2 in range(args.train_digits[0], args.train_digits[1]+1)],
+            reverse_result=True  # 启用反转
+        )
+        train_data, val_data, test_data = generator.split_iid(full_data)
+
+    # 创建数据集
+    train_dataset = AdditionDataset(train_data, tokenizer, mode='decoder_only')
+    val_dataset = AdditionDataset(val_data, tokenizer, mode='decoder_only')
+    test_dataset = AdditionDataset(test_data, tokenizer, mode='decoder_only')
+
+    # 创建数据加载器
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+        collate_fn=collate_fn_decoder_only,
+    )
+
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        collate_fn=collate_fn_decoder_only,
+    )
+
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+        collate_fn=collate_fn_decoder_only,
+    )
+
+    print(f"训练集大小: {len(train_dataset)}")
+    print(f"验证集大小: {len(val_dataset)}")
+    print(f"测试集大小: {len(test_dataset)}")
+
+    # 创建模型
+    model = create_model(args, tokenizer.vocab_size)
+
+    # 训练模型
+    history, trainer = train_model(args, model, train_loader, val_loader, tokenizer)
+
+    # 加载最佳模型
+    best_model_path = os.path.join(args.checkpoint_dir, "gpt_best.pt")
+    if os.path.exists(best_model_path):
+        print(f"\n加载最佳模型: {best_model_path}")
+        trainer.load_checkpoint(best_model_path)
+
+    # 评估模型
+    results = evaluate_model(args, model, test_loader, tokenizer)
+
+    # 保存配置和结果
+    save_config(args, results)
+
+    # 额外保存反转实验的结果
+    exp_results = {
+        'experiment': 'reversal',
+        'model_type': 'gpt',
+        'dataset_type': args.dataset_type,
+        'reverse_result': True,
+        'results': results,
+        'model_config': {
+            'd_model': args.d_model,
+            'nhead': args.nhead,
+            'num_layers': args.num_layers,
+        },
+        'training_config': {
+            'epochs': args.epochs,
+            'lr': args.lr,
+            'batch_size': args.batch_size,
+        }
+    }
+
+    import json
+    exp_results_path = os.path.join(args.log_dir, "gpt_reversal_results.json")
+    with open(exp_results_path, 'w', encoding='utf-8') as f:
+        json.dump(exp_results, f, indent=2, ensure_ascii=False)
+
+    print(f"\n实验1完成！反转训练的 GPT 模型结果已保存")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    main()
